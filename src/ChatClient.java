@@ -1,20 +1,25 @@
 import java.io.*;
 import java.net.*;
+import java.util.Scanner;
 
 public class ChatClient {
+	private static boolean disconnect;
+	private static ChatClientThread outputThread;
+	
 	public static void main (String [] args) throws IOException {
 		Socket socket = null;
         PrintWriter out = null;
-        BufferedReader in = null;
+        Scanner in = null;
+        disconnect = false;
         
         String host = args[0];
         int port = Integer.parseInt(args[1]);
         String nickname = args[2];
  
         try {
-            socket = new Socket(host, 4444);
+            socket = new Socket(host, port);
             out = new PrintWriter(socket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            in = new Scanner(socket.getInputStream());
         } catch (UnknownHostException e) {
             System.err.println("Don't know about host: " + host);
             System.exit(1);
@@ -23,24 +28,26 @@ public class ChatClient {
             System.exit(1);
         }
 
-        String userInput = null;
         String serverMsg = null;
-        BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
         
-        out.println("Hi Server!"); // Greeting to server
+        out.println("/name " + nickname); // Greet server and change name
+        outputThread = new ChatClientThread(out); //Thread to handle client -> server messages
+        outputThread.start();
         
-    	while ((serverMsg = in.readLine()) != null) {
-    		System.out.println("server: " + serverMsg); // And echo it to terminal
-    	    if(serverMsg.equalsIgnoreCase("end"))
-    	    	break;    	    
-    		userInput = stdIn.readLine(); // Get user input
-    	    out.println(userInput); // Send user input to server
-    	    System.out.println("client: " + userInput); // And echo it to terminal
+        // Loop to handle server -> client messages
+    	while (!disconnected()) {
+    		serverMsg = in.nextLine();
+     		System.out.println(serverMsg); // And echo it to terminal
     	}
     	
-        System.out.println("Done");
+   	
+        System.out.println("Disconnected.");
         out.close();
         in.close();
         socket.close();
+	}
+	
+	public static boolean disconnected() {
+		return disconnect;
 	}
 }
