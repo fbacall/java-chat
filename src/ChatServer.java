@@ -4,15 +4,15 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 public class ChatServer {
-	
+
 	private ServerSocket socket;
 	private ArrayList<ChatServerThread> userThreads;
-	
-	
+
+
 	public static void main (String [] args) throws IOException {
 		ServerSocket socket = null;
 		int port = 4444;
-		
+
 		try {
 			socket = new ServerSocket(port);
 		}
@@ -20,18 +20,18 @@ public class ChatServer {
 			System.err.println("Couldn't create server socket on port: " + port);
 			System.exit(-1);
 		}
-		
+
 		ChatServer server = new ChatServer(socket);	
 		System.out.println("Server running on port: " + port);
-		
+
 		server.serve();
 	}
-	
+
 	public ChatServer(ServerSocket socket) {
 		this.socket = socket;
 		this.userThreads = new ArrayList<ChatServerThread>();		 
 	}
-	
+
 	public void serve() throws IOException {
 		while(true) {
 			Socket newUserSocket = socket.accept();
@@ -41,7 +41,7 @@ public class ChatServer {
 			newUserThread.start(); // Go!
 		}
 	}
-	
+
 	public void sendToAll(String msg) {
 		Iterator<ChatServerThread> iter = this.userThreads.iterator();
 		while(iter.hasNext()) {
