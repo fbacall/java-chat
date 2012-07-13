@@ -1,3 +1,4 @@
+package chatClient;
 import java.io.*;
 import java.net.*;
 import java.util.NoSuchElementException;
@@ -5,7 +6,7 @@ import java.util.Scanner;
 
 public class ChatClient {
     public static boolean disconnected;
-    private static ChatClientThread outputThread;
+    private static ChatClientInputThread outputThread;
     private static ChatClientKeepAliveThread keepAliveThread;
 
     public static void main (String [] args) throws IOException {
@@ -36,7 +37,7 @@ public class ChatClient {
         out.println("/name " + nickname); // Greet server and change name
         
         //Thread to handle client -> server messages
-        outputThread = new ChatClientThread(out);
+        outputThread = new ChatClientInputThread(out);
         outputThread.start();
         //Thread to handle periodic pings to server to stop connection dying
         keepAliveThread = new ChatClientKeepAliveThread(out);

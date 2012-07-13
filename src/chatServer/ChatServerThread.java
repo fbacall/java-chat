@@ -1,3 +1,4 @@
+package chatServer;
 import java.io.*;
 import java.net.*;
 
@@ -16,7 +17,6 @@ public class ChatServerThread extends Thread {
     }
 
     public void run() {
-
         try {
             //New client msg
             server.sendToAll("*** " + user.name + " connected ("+ user.address +") ***");
@@ -25,6 +25,7 @@ public class ChatServerThread extends Thread {
 
             // Loop that waits for client input
             try {
+                out.println(server.welcomeMessage(user.name));
                 String msg;
                 while ((msg = in.readLine()) != null) {
                     // Ping to keep connection alive. Don't output anything to rest of server
@@ -44,7 +45,7 @@ public class ChatServerThread extends Thread {
                             out.println("Invalid name. Please use only alphanumeric characters, hyphens and underscores.");    
                         }
                         else if(server.nameInUse(newName)) {
-                            out.println("Name already in use.");
+                            out.println("Name '" + newName + "' already in use.");
                         }
                         else {
                             user.name = newName;
@@ -65,10 +66,12 @@ public class ChatServerThread extends Thread {
             catch (SocketTimeoutException e) {
                 server.sendToAll("*** " + user.name + " timed out ("+ user.address +") ***");           
             }
-            
-            out.close();
-            in.close();
-            socket.close();
+            finally {               
+                out.close();
+                in.close();
+                socket.close();
+                server.disconnectClient(this);
+            }
         }
         catch (IOException e) {
             e.printStackTrace();

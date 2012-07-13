@@ -1,3 +1,4 @@
+package chatServer;
 
 public class User {
 

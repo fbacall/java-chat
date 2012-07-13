@@ -1,3 +1,4 @@
+package chatClient;
 import java.io.PrintWriter;
 import java.util.NoSuchElementException;
 

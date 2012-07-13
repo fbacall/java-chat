@@ -1,3 +1,4 @@
+package chatServer;
 import java.io.*;
 import java.net.*;
 import java.text.SimpleDateFormat;
@@ -8,7 +9,7 @@ import java.util.Iterator;
 public class ChatServer {
 
     private ServerSocket socket;
-    private ArrayList<ChatServerThread> userThreads;
+    private ArrayList<ChatServerThread> clientThreads;
     private static final int CLIENT_TIMEOUT = 3 * 60 * 1000;
 
     public static void main (String [] args) throws IOException {
@@ -30,16 +31,16 @@ public class ChatServer {
 
     public ChatServer(ServerSocket socket) {
         this.socket = socket;
-        this.userThreads = new ArrayList<ChatServerThread>();		 
+        this.clientThreads = new ArrayList<ChatServerThread>();		 
     }
 
     public void serve() throws IOException {
         while(true) {
             Socket newUserSocket = socket.accept();
             newUserSocket.setSoTimeout(CLIENT_TIMEOUT);
-            User newUser = new User("User" + userThreads.size(), newUserSocket.getLocalAddress().getHostAddress());
+            User newUser = new User("User" + clientThreads.size(), newUserSocket.getLocalAddress().getHostAddress());
             ChatServerThread newUserThread = new ChatServerThread(newUser, newUserSocket, this); // Thread to communicate to client with
-            this.userThreads.add(newUserThread);
+            this.clientThreads.add(newUserThread);
             newUserThread.start(); // Go!
         }
     }
@@ -50,7 +51,7 @@ public class ChatServer {
         msg = "[" + dateString + "] " + msg;
                 
         System.out.println(msg);
-        Iterator<ChatServerThread> iter = this.userThreads.iterator();        
+        Iterator<ChatServerThread> iter = this.clientThreads.iterator();        
         while(iter.hasNext()) {
             ChatServerThread thread = iter.next();
             try {
@@ -68,14 +69,14 @@ public class ChatServer {
 
     // Get list of threads/sessions/connections/sockets whatever    
     public ArrayList<ChatServerThread> getUserThreads() {
-        return userThreads;    	
+        return clientThreads;    	
     }
     
     // Get list of users
     public User[] getUsers() {
-        User [] users = new User[userThreads.size()];
+        User [] users = new User[clientThreads.size()];
         int index = 0;
-        Iterator<ChatServerThread> iter = this.userThreads.iterator();        
+        Iterator<ChatServerThread> iter = this.clientThreads.iterator();        
         while(iter.hasNext()) {            
             users[index++] = iter.next().user;
         }
@@ -98,5 +99,25 @@ public class ChatServer {
             }                
         }        
         return inUse;
+    }
+    
+    public void disconnectClient(ChatServerThread thread) {
+        clientThreads.remove(thread);
+    }
+    
+    public String welcomeMessage(String newUser) {
+        User [] users = getUsers();
+        int otherUserCount = users.length - 1;
+        String msg = "-------------------------\n" +
+                     "Welcome!\n" +
+                     otherUserCount + " other users online" + (otherUserCount > 0 ? ": " : ".");
+        for(int i = 0; i < users.length; i++) {
+            String name = users[i].name;
+            if(!name.equals(newUser)) {
+                msg += name + ((i == (otherUserCount-1)) ? "." : ", ");
+            }
+        }
+        msg += "\n-------------------------";
+        return msg;
     }
 }
