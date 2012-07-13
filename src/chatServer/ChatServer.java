@@ -57,14 +57,14 @@ public class ChatServer {
             try {
                 PrintWriter out = new PrintWriter(thread.socket.getOutputStream(), true);
                 out.println(msg);
-                System.out.print("(sent to " + thread.user.address + ") ");
+                //System.out.print("(sent to " + thread.user.address + ") ");
             }
             catch (IOException e) {
                 System.err.println("Failed to send msg to client: " + thread.user.name + 
                         " (" + thread.user.address + ")");
             }
         }
-        System.out.println();
+        //System.out.println();
     }
 
     // Get list of threads/sessions/connections/sockets whatever    
