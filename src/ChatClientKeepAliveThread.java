@@ -1,22 +1,27 @@
 import java.io.PrintWriter;
+import java.util.NoSuchElementException;
 
 
 public class ChatClientKeepAliveThread extends Thread {
-	
+
     private PrintWriter out;
-    
+
     public ChatClientKeepAliveThread(PrintWriter out) {
-    	this.out = out;
+        super("ChatClientKeepAliveThread");
+        this.out = out;
     }
-	
+
     public void run() {
-		try {
-	        while (!ChatClient.disconnected) {
-	        	out.println("/ping");
-	            Thread.sleep(60 * 1000);
-	        }
-	    } catch (InterruptedException e) {
-	        e.printStackTrace();
-	    }
+        try {
+            while (!ChatClient.disconnected) {
+                Thread.sleep(60 * 1000);
+                out.println("/ping");                
+            }
+        } 
+        catch (InterruptedException e) {
+        }
+        catch (NoSuchElementException e) {
+            ChatClient.disconnected = true;
+        }
     }
 }

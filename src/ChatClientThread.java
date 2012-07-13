@@ -7,6 +7,7 @@ public class ChatClientThread extends Thread {
     private PrintWriter out;
 
     public ChatClientThread(PrintWriter out) {
+        super("ChatClientThread");
         this.out = out;		
     }
 

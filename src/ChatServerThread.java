@@ -6,12 +6,13 @@ public class ChatServerThread extends Thread {
     public Socket socket;
     private ChatServer server;
     public User user;
+    public boolean disconnected;
 
     public ChatServerThread(User user, Socket socket, ChatServer server) {
         super("ChatUserThread");
         this.socket = socket;
         this.user = user;
-        this.server = server;
+        this.server = server;    
     }
 
     public void run() {
@@ -19,35 +20,53 @@ public class ChatServerThread extends Thread {
         try {
             //New client msg
             server.sendToAll("*** " + user.name + " connected ("+ user.address +") ***");
-            //PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(
-                    socket.getInputStream()));
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
-            //do something with the request
-            String msg;
-            while ((msg = in.readLine()) != null) {
-                if(msg.equalsIgnoreCase("/ping")) {
-                	System.out.println("Ping from " + user.name + " ("+ user.address +")");
+            // Loop that waits for client input
+            try {
+                String msg;
+                while ((msg = in.readLine()) != null) {
+                    // Ping to keep connection alive. Don't output anything to rest of server
+                    if(msg.equalsIgnoreCase("/ping")) {
+                        System.out.println("Ping from " + user.name + " ("+ user.address +")");
+                    }
+                    // Disconnect
+                    else if (msg.equalsIgnoreCase("/dc")) {
+                        server.sendToAll("*** " + user.name + " disconnected ("+ user.address +") ***");
+                        break;
+                    }
+                    // Change user name if a valid name given
+                    else if(msg.startsWith("/name")) {
+                        String oldName = user.name;
+                        String newName = msg.split(" ",2)[1];
+                        if(newName == null || !server.validName(newName)){
+                            out.println("Invalid name. Please use only alphanumeric characters, hyphens and underscores.");    
+                        }
+                        else if(server.nameInUse(newName)) {
+                            out.println("Name already in use.");
+                        }
+                        else {
+                            user.name = newName;
+                            server.sendToAll("*** " + oldName + " changed name to: " + user.name + " ***");
+                        }
+                    }
+                    // Emote
+                    else if(msg.startsWith("/me")) {
+                        user.name = msg.split(" ",2)[1];
+                        server.sendToAll(user.name + " " + msg);
+                    }
+                    // Normal chat message
+                    else {    	    		
+                        server.sendToAll(user.name + ": " + msg);    		    	
+                    }
                 }
-                else if (msg.equalsIgnoreCase("/dc")) {
-                    server.sendToAll("*** " + user.name + " disconnected ("+ user.address +") ***");
-                    break;
-                }
-                else if(msg.startsWith("/name")) {
-                    String oldName = user.name;
-                    user.name = msg.split(" ",2)[1];
-                    server.sendToAll("*** " + oldName + " changed name to: " + user.name + " ***");
-                }
-                else if(msg.startsWith("/me")) {
-                    user.name = msg.split(" ",2)[1];
-                    server.sendToAll(user.name + " " + msg);
-                }
-                else {    	    		
-                    server.sendToAll(user.name + ": " + msg);    		    	
-                }	    		
             }
-
-            //out.close();
+            catch (SocketTimeoutException e) {
+                server.sendToAll("*** " + user.name + " timed out ("+ user.address +") ***");           
+            }
+            
+            out.close();
             in.close();
             socket.close();
         }
