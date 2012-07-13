@@ -11,7 +11,7 @@ public class ChatServer {
 
     public static void main (String [] args) throws IOException {
         ServerSocket socket = null;
-        int port = 4444;
+        int port = Integer.parseInt(args[0]);
 
         try {
             socket = new ServerSocket(port);
