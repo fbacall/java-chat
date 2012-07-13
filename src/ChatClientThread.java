@@ -13,8 +13,11 @@ public class ChatClientThread extends Thread {
     public void run() {
         Scanner stdIn = new Scanner(System.in);
         String userInput;
-        while((userInput = stdIn.nextLine()) != null) {
+        while(!ChatClient.disconnected) {
+        	userInput = stdIn.nextLine();
             out.println(userInput); // Send user input to server
+            if(userInput.equals("/dc"))
+            	ChatClient.disconnected = true;
         }
     }
 

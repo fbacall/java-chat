@@ -3,14 +3,15 @@ import java.net.*;
 import java.util.Scanner;
 
 public class ChatClient {
-    private static boolean disconnect;
+    public static boolean disconnected;
     private static ChatClientThread outputThread;
+    private static ChatClientKeepAliveThread keepAliveThread;
 
     public static void main (String [] args) throws IOException {
         Socket socket = null;
         PrintWriter out = null;
         Scanner in = null;
-        disconnect = false;
+        disconnected = false;
 
         String host = args[0];
         int port = Integer.parseInt(args[1]);
@@ -33,21 +34,18 @@ public class ChatClient {
         out.println("/name " + nickname); // Greet server and change name
         outputThread = new ChatClientThread(out); //Thread to handle client -> server messages
         outputThread.start();
+        keepAliveThread = new ChatClientKeepAliveThread(out); //Thread to handle periodic pings to server to stop connection dying
+        keepAliveThread.start();
 
         // Loop to handle server -> client messages
-        while (!disconnected()) {
+        while (!disconnected) {
             serverMsg = in.nextLine();
             System.out.println(serverMsg); // And echo it to terminal
         }
-
 
         System.out.println("Disconnected.");
         out.close();
         in.close();
         socket.close();
-    }
-
-    public static boolean disconnected() {
-        return disconnect;
     }
 }

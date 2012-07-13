@@ -18,7 +18,7 @@ public class ChatServerThread extends Thread {
 
         try {
             //New client msg
-            server.sendToAll("***" + user.name + " connected ("+ user.address +") ***");
+            server.sendToAll("*** " + user.name + " connected ("+ user.address +") ***");
             //PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(new InputStreamReader(
                     socket.getInputStream()));
@@ -26,23 +26,24 @@ public class ChatServerThread extends Thread {
             //do something with the request
             String msg;
             while ((msg = in.readLine()) != null) {
-                if(msg.equalsIgnoreCase("/dc")) {
-                    String fullMsg = "***" + user.name + " disconnected ("+ user.address +") ***";
-                    System.out.println(fullMsg);
-                    server.sendToAll(fullMsg);
+                if(msg.equalsIgnoreCase("/ping")) {
+                	System.out.println("Ping from " + user.name + " ("+ user.address +")");
+                }
+                else if (msg.equalsIgnoreCase("/dc")) {
+                    server.sendToAll("*** " + user.name + " disconnected ("+ user.address +") ***");
                     break;
                 }
                 else if(msg.startsWith("/name")) {
                     String oldName = user.name;
-                    user.name = msg.split(" ")[1];
-                    String fullMsg = "***" + oldName + " changed name to: " + user.name + " ***";
-                    System.out.println(fullMsg);
-                    server.sendToAll(fullMsg);
+                    user.name = msg.split(" ",2)[1];
+                    server.sendToAll("*** " + oldName + " changed name to: " + user.name + " ***");
+                }
+                else if(msg.startsWith("/me")) {
+                    user.name = msg.split(" ",2)[1];
+                    server.sendToAll(user.name + " " + msg);
                 }
                 else {    	    		
-                    String fullMsg = user.name + ": " + msg;
-                    System.out.println(fullMsg);
-                    server.sendToAll(fullMsg);    		    	
+                    server.sendToAll(user.name + ": " + msg);    		    	
                 }	    		
             }
 

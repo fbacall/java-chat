@@ -43,19 +43,20 @@ public class ChatServer {
     }
 
     public void sendToAll(String msg) {
-        Iterator<ChatServerThread> iter = this.userThreads.iterator();
+    	System.out.println(msg);
+        Iterator<ChatServerThread> iter = this.userThreads.iterator();        
         while(iter.hasNext()) {
             ChatServerThread thread = iter.next();
             try {
                 PrintWriter out = new PrintWriter(thread.socket.getOutputStream(), true);
                 out.println(msg);
-                System.out.println("Sent to " + thread.user.address);
+                System.out.println("\tsent to " + thread.user.address);
             }
             catch (IOException e) {
                 System.err.println("Failed to send msg to client: " + thread.user.name + 
                         " (" + thread.user.address + ")");
             }
-
-        }		
+        }
+        
     }
 }
