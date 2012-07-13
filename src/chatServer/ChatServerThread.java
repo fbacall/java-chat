@@ -66,6 +66,9 @@ public class ChatServerThread extends Thread {
             catch (SocketTimeoutException e) {
                 server.sendToAll("*** " + user.name + " timed out ("+ user.address +") ***");           
             }
+            catch (SocketException e) {
+                server.sendToAll("*** " + user.name + " disconnected ("+ user.address +") ***");
+            }
             finally {               
                 out.close();
                 in.close();
