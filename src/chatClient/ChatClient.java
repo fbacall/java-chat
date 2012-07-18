@@ -8,6 +8,7 @@ public class ChatClient {
     public static boolean disconnected;
     private static ChatClientInputThread outputThread;
     private static ChatClientKeepAliveThread keepAliveThread;
+    private static final String VERSION = "0.1";
 
     public static void main (String [] args) throws IOException {
         Socket socket = null;
@@ -55,11 +56,12 @@ public class ChatClient {
         }
 
         System.out.println("Disconnected.");
-        keepAliveThread.interrupt();
-        outputThread.interrupt();
-        
+       
         out.close();
         in.close();
         socket.close();
+        
+        keepAliveThread.interrupt();
+        outputThread.interrupt();
     }
 }

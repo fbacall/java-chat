@@ -20,6 +20,7 @@ public class ChatClientKeepAliveThread extends Thread {
             }
         } 
         catch (InterruptedException e) {
+            ChatClient.disconnected = true;
         }
         catch (NoSuchElementException e) {
             ChatClient.disconnected = true;

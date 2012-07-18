@@ -9,7 +9,7 @@ import java.util.Iterator;
 public class ChatServer {
 
     private ServerSocket socket;
-    private ArrayList<ChatServerThread> clientThreads;
+    private ArrayList<User> users;
     private static final int CLIENT_TIMEOUT = 3 * 60 * 1000;
 
     public static void main (String [] args) throws IOException {
@@ -31,17 +31,14 @@ public class ChatServer {
 
     public ChatServer(ServerSocket socket) {
         this.socket = socket;
-        this.clientThreads = new ArrayList<ChatServerThread>();		 
+        this.users = new ArrayList<User>();		 
     }
 
     public void serve() throws IOException {
         while(true) {
             Socket newUserSocket = socket.accept();
             newUserSocket.setSoTimeout(CLIENT_TIMEOUT);
-            User newUser = new User("User" + clientThreads.size(), newUserSocket.getLocalAddress().getHostAddress());
-            ChatServerThread newUserThread = new ChatServerThread(newUser, newUserSocket, this); // Thread to communicate to client with
-            this.clientThreads.add(newUserThread);
-            newUserThread.start(); // Go!
+            this.users.add(new User("User" + users.size(), newUserSocket, this));
         }
     }
 
@@ -51,36 +48,16 @@ public class ChatServer {
         msg = "[" + dateString + "] " + msg;
                 
         System.out.println(msg);
-        Iterator<ChatServerThread> iter = this.clientThreads.iterator();        
+        Iterator<User> iter = this.users.iterator();        
         while(iter.hasNext()) {
-            ChatServerThread thread = iter.next();
-            try {
-                PrintWriter out = new PrintWriter(thread.socket.getOutputStream(), true);
-                out.println(msg);
-                //System.out.print("(sent to " + thread.user.address + ") ");
-            }
-            catch (IOException e) {
-                System.err.println("Failed to send msg to client: " + thread.user.name + 
-                        " (" + thread.user.address + ")");
-            }
+            User user = iter.next();
+            user.sendMessage(msg);
         }
-        //System.out.println();
     }
 
-    // Get list of threads/sessions/connections/sockets whatever    
-    public ArrayList<ChatServerThread> getUserThreads() {
-        return clientThreads;    	
-    }
-    
-    // Get list of users
-    public User[] getUsers() {
-        User [] users = new User[clientThreads.size()];
-        int index = 0;
-        Iterator<ChatServerThread> iter = this.clientThreads.iterator();        
-        while(iter.hasNext()) {            
-            users[index++] = iter.next().user;
-        }
-        return users;        
+    // Get list of connected users    
+    public ArrayList<User> getUserThreads() {
+        return users;    	
     }
 
     // Check if name contains valid characters
@@ -91,9 +68,9 @@ public class ChatServer {
     // Check if name in use by another user.
     public boolean nameInUse(String name) {
         boolean inUse = false;
-        User [] users = getUsers();
-        for(int i = 0; i < users.length; i++) {
-            if(users[i].name.equals(name)) {
+        Iterator<User> iter = users.iterator();
+        while(iter.hasNext()) {
+            if(iter.next().getName().equals(name)) {
                 inUse = true;
                 break;
             }                
@@ -101,18 +78,16 @@ public class ChatServer {
         return inUse;
     }
     
-    public void disconnectClient(ChatServerThread thread) {
-        clientThreads.remove(thread);
+    public void disconnectClient(User user) {
+        users.remove(user);
     }
     
     public String welcomeMessage(String newUser) {
-        User [] users = getUsers();
-        int otherUserCount = users.length - 1;
+        int otherUserCount = users.size() - 1;
         String msg = "-------------------------\n" +
-                     "Welcome!\n" +
                      otherUserCount + " other users online" + (otherUserCount > 0 ? ": " : ".");
-        for(int i = 0; i < users.length; i++) {
-            String name = users[i].name;
+        for(int i = 0; i < users.size(); i++) {
+            String name = users.get(i).getName();
             if(!name.equals(newUser)) {
                 msg += name + ((i == (otherUserCount-1)) ? "." : ", ");
             }
