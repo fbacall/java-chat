@@ -8,7 +8,6 @@ public class ChatClient {
     public static boolean disconnected;
     private static ChatClientInputThread outputThread;
     private static ChatClientKeepAliveThread keepAliveThread;
-    private static final String VERSION = "0.1";
 
     public static void main (String [] args) throws IOException {
         Socket socket = null;

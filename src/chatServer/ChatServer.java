@@ -86,10 +86,11 @@ public class ChatServer {
         int otherUserCount = users.size() - 1;
         String msg = "-------------------------\n" +
                      otherUserCount + " other users online" + (otherUserCount > 0 ? ": " : ".");
-        for(int i = 0; i < users.size(); i++) {
-            String name = users.get(i).getName();
-            if(!name.equals(newUser)) {
-                msg += name + ((i == (otherUserCount-1)) ? "." : ", ");
+        Iterator<User> iter = users.iterator();
+        while(iter.hasNext()) {
+            User user = iter.next();
+            if(!user.getName().equals(newUser)) {
+                msg += user.getName() + ((user == users.get(users.size() - 1)) ? "." : ", ");
             }
         }
         msg += "\n-------------------------";
